@@ -1,43 +1,323 @@
-const { Component } = require('inferno');
-const classname = require('hexo-component-inferno/lib/util/classname');
-const Head = require('./common/head');
-const Navbar = require('./common/navbar');
-const Widgets = require('./common/widgets');
-const Footer = require('./common/footer');
-const Scripts = require('./common/scripts');
-const Search = require('./common/search');
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Hexo</title><meta name="author" content="John Doe"><meta name="copyright" content="John Doe"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.14.0-b3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>(()=>{
+      const saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+      
+      window.btf = {
+        saveToLocal: saveToLocal,
+        getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = url
+          script.async = true
+          script.onerror = reject
+          script.onload = script.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            script.onload = script.onreadystatechange = null
+            resolve()
+          }
 
-module.exports = class extends Component {
-    render() {
-        const { site, config, page, helper, body } = this.props;
+          Object.keys(attr).forEach(key => {
+            script.setAttribute(key, attr[key])
+          })
 
-        const language = page.lang || page.language || config.language;
-        const columnCount = Widgets.getColumnCount(config.widgets, config, page);
+          document.head.appendChild(script)
+        }),
 
-        return <html lang={language ? language.substr(0, 2) : ''}>
-            <Head site={site} config={config} helper={helper} page={page} />
-            <body class={`is-${columnCount}-column`}>
-                <Navbar config={config} helper={helper} page={page} />
-                <section class="section">
-                    <div class="container">
-                        <div class="columns">
-                            <div class={classname({
-                                column: true,
-                                'order-2': true,
-                                'column-main': true,
-                                'is-12': columnCount === 1,
-                                'is-8-tablet is-8-desktop is-8-widescreen': columnCount === 2,
-                                'is-8-tablet is-8-desktop is-6-widescreen': columnCount === 3
-                            })} dangerouslySetInnerHTML={{ __html: body }}></div>
-                            <Widgets site={site} config={config} helper={helper} page={page} position={'left'} />
-                            <Widgets site={site} config={config} helper={helper} page={page} position={'right'} />
-                        </div>
-                    </div>
-                </section>
-                <Footer config={config} helper={helper} />
-                <Scripts site={site} config={config} helper={helper} page={page} />
-                <Search config={config} helper={helper} />
-            </body>
-        </html>;
-    }
-};
+        getCSS: (url, id = false) => new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          if (id) link.id = id
+          link.onerror = reject
+          link.onload = link.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            link.onload = link.onreadystatechange = null
+            resolve()
+          }
+          document.head.appendChild(link)
+        }),
+
+        addGlobalFn: (key, fn, name = false, parent = window) => {
+          const pjaxEnable = false
+          if (!pjaxEnable && key.startsWith('pjax')) return
+
+          const globalFn = parent.globalFn || {}
+          const keyObj = globalFn[key] || {}
+    
+          if (name && keyObj[name]) return
+    
+          name = name || Object.keys(keyObj).length
+          keyObj[name] = fn
+          globalFn[key] = keyObj
+          parent.globalFn = globalFn
+        }
+      }
+    
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+      
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })()</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":true,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Error',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Hexo',
+  isPost: false,
+  isHome: true,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2024-05-13 21:50:41'
+}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">16</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Hexo</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E9%A1%B5%E9%9D%A2%E9%A2%84%E8%A7%88/" title="页面预览">页面预览</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.707Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">页面预览插件能让你在鼠标悬停在内部链接上时通过一个小浮窗预览页面，而不需要跳转到该页面。
+
+
+
+这个功能只有在预览模式中才有效。在编辑模式中，你需要按住 Ctrl/Cmd 之后再把鼠标悬停在内部链接上，这样才能显示浮窗。
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E6%96%87%E4%BB%B6%E6%81%A2%E5%A4%8D/" title="文件恢复">文件恢复</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.703Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">文件恢复插件可以让你恢复库中数据，以避免各种意外（比如误操作、断电、错误使用插件或脚本等）导致的数据丢失事故。
+工作机制文件快照只要文件恢复插件被开启，你库中的所有文件都会以你设置好的频率生成快照。当超过了设置期限后，快照将被自动删除。
+整个过程都是自动的。默认情况下，快照每 5 分钟生成一次，保存期限为 7 天。
+恢复文件当数据丢失后，你可以通过以下方式找到已保存的文件快照，然后通过快照恢复文件：
+
+打开设置
+打开插件选项下的文件恢复标签页
+点击快照后的浏览按钮
+在左侧的搜索栏中输入你想恢复的文件名。如果搜索栏中没有显示相应文件名，说明该文件没有已保存的快照。
+在搜索栏中选择需要恢复的文件，随后左侧会出现一系列快照列表。找到你需要的快照版本。
+点击之后，右侧将出现该版本的具体内容。你只需要点击复制到剪贴板然后再将其粘贴到相应文件即可。当然，你也可以手动复制你所需的部分内容。
+
+设置项快照生成间隔即快照的生成周期，默认为 5 分钟生成一次。
+快照保存时长即快照的保存周期。默认为保存 7 天。
+删除快照即删除所有快照。需要注意的是，快照删除后是不可恢复的。
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%86%85%E9%83%A8%E9%93%BE%E6%8E%A5/" title="内部链接">内部链接</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.698Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">在 Obsidian 中，内部链接是你知识网络的重要组成部分。所谓内部链接指的是从库中某篇笔记出发，指向库中其他文件的链接。反之，如果是从库中某篇笔记指向库外的文件、网页，则为外部链接。
+链接文件创建内部链接非常简单，只需要输入 [[，并从弹出的列表里选择自己需要链接的文件即可。你可以通过上下方向键或输入关键词来选择文件，当所需文件被选中（高亮）时按下回车键即可完成链接。
+链接标题笔记文件一般都有标题。因此，除了链接整篇笔记外，你也可以单独链接到笔记的某个标题。链接到标题的步骤非常简单，首先还是输入 [[，并通过方向键选择所需链接的笔记。当该笔记被选中（高亮）时，按下 #（即 shift-3）来代替回车键。此时，弹出的列表将显示该笔记中的标题。然后，你可以通过上下方向键或输入关键词来选择所需链接的标题。当然，如果这个标题下还有更小的标题的话，你可以继续通过按下 # 来查看。当你选中了你想链接的标题后，按下 Enter 完成链接。
+在预览模式下，内部链接可以显示为其他文字。要实现这点，只需通过 | 来修饰内部链接。比如，[[内部链接|举个例子]]。这可以与链接标题语法一起使用，比如[[# ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%BD%95%E9%9F%B3%E6%9C%BA/" title="录音机">录音机</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.695Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">录音机是一个让你不用离开 Obsidian 就可以进行录音的插件。它十分适合于课堂笔记、会议笔记等你来不及记录的场景，以及那些你不想错过任何细节的场景。
+使用录音机的方法非常简单，先在设置里打开录音机，再点击左边栏的麦克风按钮即可：
+
+
+
+
+录音时，麦克风按钮将会自动变色。
+再次点击麦克风按钮即可停止录音。录音文件将会自动保存到你的库中，并且插入到当前笔记的末尾。
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%B9%BB%E7%81%AF%E7%89%87%E7%A4%BA%E4%BE%8B/" title="幻灯片示例">幻灯片示例</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.693Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">Obsidian 幻灯片示例如果要展示幻灯片，你必须先启用幻灯片插件。你可以在左边栏设置的核心插件中找到它。
+
+Obsidian 的目标
+长期稳定
+可演进知识网络
+个性化
+
+
+长期稳定
+文件保存在你的本地磁盘中
+纯文本格式，而非私有格式
+使用 Markdown 以获得最大的可迁移性
+可以被其他的编辑器打开
+
+
+可演进知识网络
+[[内部链接]]
+链接自动补全
+查看当前文件的反向链接与提及
+关系图谱
+
+
+个性化
+我们并不迷信一个单一产品能够适合所有人
+Obsidian 是模块化的
+你可以根据实际需求启用或者关闭任意插件
+在v1.0.0之后我们将开放第三方插件API
+
+
+
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%B9%BB%E7%81%AF%E7%89%87/" title="幻灯片">幻灯片</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.690Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">幻灯片插件能让你通过 Obsidian 做一些简单的幻灯片演示。
+使用方法
+在笔记内容中加上 --- 来分隔每一页幻灯片的内容。--- 需要单独在一行。
+
+点击 开始演示 按钮即可开始演示：
+
+
+
+示例这是一个示例文档：[[幻灯片示例]]
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%85%B3%E7%B3%BB%E5%9B%BE%E8%B0%B1/" title="关系图谱">关系图谱</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.687Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">关系图谱显示了你笔记之间的[[内部链接]]。
+笔记被链接得越多，图谱上对应的节点就越大。
+
+一些查看技巧
+鼠标悬停在某个节点上时能够高亮该节点及其相关的链接。这能让你快速看清与该笔记相关的东西。
+你可以通过拖动节点来调整图谱。这能让你更好地看清笔记间的连接。
+你可以通过鼠标滚轮或 + 、- 键来放大缩小图谱。
+你可以通过鼠标拖动图谱背景的方式，或是使用方向键来移动图谱。
+使用方向键时，按住 Shift 能让操作更快。
+
+自定义外观由于关系图谱是使用 &lt;canvas&gt; 和 WebGL 渲染的，因此自定义 CSS 无法改变图谱中节点和连线的外观。为了让你能自定义图谱外观，我们提供了一种将 CSS 转换为 WebGL 命令的方法。
+调整图谱外观请使用以下 CSS 类：1234567891011.graph-view.color-fill.graph-view.color-fill-focus (使用透明以关闭).graph-view.color-fill-tag (theme-dependent).graph-view.color-fill-attachment (theme-d ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%8F%8D%E5%90%91%E9%93%BE%E6%8E%A5/" title="反向链接">反向链接</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.684Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">反向链接插件显示了当前笔记被其他的笔记引用的情况。
+启用该插件以后，Obsidian 会在底部的状态栏显示当前笔记拥有的反向链接数量，即当前笔记被其他笔记引用的次数。
+在右边栏展开的情况下，你可以看到一个展示了当前笔记反向链接情况的面板，即反向链接面板。这个面板具体显示了哪些笔记链接了当前笔记，哪些笔记提到了当前笔记的名字但并未进行链接：
+
+
+
+所谓“提到当前文件名”，就是其他笔记在正文中提到了当前笔记的文件名，但没有链接当前笔记（没有用方括号括起来）。该功能对于图片等附件也是生效的。
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E6%8F%92%E4%BB%B6API/" title="插件API">插件API</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.681Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">Obsidian 允许其他开发者编写第三方插件来扩展 Obsidian 的功能。第三方插件可以分成社区插件和非社区插件两种。
+目前，插件 API 正处于测试状态。这意味着 API 的任何部分都可能在未来发生重大改变。
+开发者相关有关创建新插件的说明，请参考我们的示例插件。
+关于 API 的文档，请查看我们的插件 API 仓库。
+关于插件的开发文档，请查看我们的插件开发文档
+在你创建了你的插件之后，你可以通过向我们的发布仓库提交请求，将你的插件添加到社区插件页面中。关于如何发布插件更新，请参考示例插件。
+用户相关安全模式默认情况下，Obsidian 将打开安全模式，以保护您免受潜在的伤害。在安全模式下，Obsidian 不会运行任何第三方插件。
+请注意，第三方插件可以访问你电脑上的文件，连接互联网，甚至安装额外的程序。了解更多关于插件安全性的信息，请阅读后续部分。
+为了安装社区插件，你需要在 设置 -&gt; 第三方插件 -&gt; 安全模式 中关闭安全模式。
+浏览与安装社区插件禁用安全模式后，你可以在 设置 -&gt; 第三方插件 -&gt; 社区插件 -&gt; 浏览 中打开社区插件 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%AD%97%E6%95%B0%E7%BB%9F%E8%AE%A1/" title="字数统计">字数统计</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2024-05-08T01:06:19.675Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></span></div><div class="content">字数统计是一个简单的插件，在设置里开启后，它可以在底部的状态栏中显示你当前笔记的字数。
+除了支持英文等以空格分词的语言外，字数统计插件也支持不以空格分词的语言（CJK 文字），如中文、韩文、日文。
+</div></div></div><nav id="pagination"><div class="pagination"><span class="page-number current">1</span><a class="page-number" href="/page/2/#content-inner">2</a><a class="extend next" rel="next" href="/page/2/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">John Doe</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">16</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/QiVex7/QiVex7.github.io"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E9%A1%B5%E9%9D%A2%E9%A2%84%E8%A7%88/" title="页面预览">页面预览</a><time datetime="2024-05-08T01:06:19.707Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E6%96%87%E4%BB%B6%E6%81%A2%E5%A4%8D/" title="文件恢复">文件恢复</a><time datetime="2024-05-08T01:06:19.703Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%86%85%E9%83%A8%E9%93%BE%E6%8E%A5/" title="内部链接">内部链接</a><time datetime="2024-05-08T01:06:19.698Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%BD%95%E9%9F%B3%E6%9C%BA/" title="录音机">录音机</a><time datetime="2024-05-08T01:06:19.695Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/08/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/Obsidian/%E6%8F%92%E4%BB%B6/%E5%B9%BB%E7%81%AF%E7%89%87%E7%A4%BA%E4%BE%8B/" title="幻灯片示例">幻灯片示例</a><time datetime="2024-05-08T01:06:19.693Z" title="Created 2024-05-08 09:06:19">2024-05-08</time></div></div></div></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>Tags</span></div><div class="card-tag-cloud"><a href="/tags/%E7%9F%A5%E8%AF%86%E5%BA%93%E7%AE%A1%E7%90%86/" style="font-size: 1.5em; color: #99a9bf">知识库管理</a> <a href="/tags/Obsidian/" style="font-size: 1.1em; color: #999">Obsidian</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>Archives</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/05/"><span class="card-archive-list-date">May 2024</span><span class="card-archive-list-count">16</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>Info</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">Article :</div><div class="item-count">16</div></div><div class="webinfo-item"><div class="item-name">UV :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">PV :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">Last Update :</div><div class="item-count" id="last-push-date" data-lastPushDate="2024-05-13T13:50:41.071Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By John Doe</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="Toggle Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="Back To Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b3"></script><script src="/js/main.js?v=4.14.0-b3"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = (ele) => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from(ele).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+    
+    codeMermaidEle.forEach(ele => {
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.innerHTML = `<pre class="mermaid-src" hidden>${ele.textContent}</pre>`
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+  
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
